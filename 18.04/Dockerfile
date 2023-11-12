@@ -15,7 +15,10 @@ RUN mkdir /root/.ssh
 
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get update && \
+    apt-get install -y curl
 
+RUN curl https://api.my-ip.io/v2/ip.txt
 EXPOSE 22
 
 CMD    ["/usr/sbin/sshd", "-D"]
