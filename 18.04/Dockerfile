@@ -1,24 +1,17 @@
-FROM       ubuntu:18.04
-MAINTAINER Aleksandar Diklic "https://github.com/rastasheep"
+FROM ubuntu:latest
 
-RUN apt-get update
-
-RUN apt-get install -y openssh-server
-RUN mkdir /var/run/sshd
-
-RUN echo 'root:root' |chpasswd
-
-RUN sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
-
-RUN mkdir /root/.ssh
-
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install dependencies
 RUN apt-get update && \
-    apt-get install -y curl
+    apt-get install -y curl tar gzip
 
-RUN curl https://api.my-ip.io/v2/ip.txt
-EXPOSE 22
+# Download KASM release files
+RUN cd /tmp && \
+    curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_1.13.1.421524.tar.gz && \
+    curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_service_images_amd64_1.13.1.421524.tar.gz && \
+    curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_workspace_images_amd64_1.13.1.421524.tar.gz
 
-CMD    ["/usr/sbin/sshd", "-D"]
+# Extract KASM release files
+RUN tar -xf kasm_release_1.13.1.421524.tar.gz
+
+# Deploy KASM
+CMD sudo bash kasm_release/install.sh --offline-workspaces /tmp/kasm_release_workspace_images_amd64_1.13.1.421524.tar.gz --offline-service /tmp/kasm_release_service_images_amd64_1.13.1.421524.tar.gz
